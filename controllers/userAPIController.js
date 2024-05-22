@@ -1,104 +1,56 @@
 const User = require("../models/userModel");
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-// get all Inventorys
-const getInventorys = async (req, res) => {
+// Register a new user
+const registerUser = async (req, res) => {
   try {
-    const inventorys = await Inventory.find({});
-    res.status(200).json(inventorys);
-  } catch (error) {
-    console.error("Error rendering index.html:", error);
-    res.status(500).send("Internal Server Error");
-  }
-};
+    const { email, password, firstName, lastName, phoneNumber, role } = req.body;
 
-// Add one user
-app.post('/api/users/signup', async (req, res) => {
-  const { email, password, firstName, lastName, phoneNumber, role } = req.body;
-  const hashedPassword = await bcryptjs.hash(password, 10);
+    // Check if the email is already registered
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
-  try {
-    const user = new User({
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user
+    const newUser = new User({
       email,
       password: hashedPassword,
       firstName,
       lastName,
       phoneNumber,
-      role,
+      role
     });
 
-    await user.save();
-    res.status(201).send({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(400).send({ error: 'Error registering user' });
-  }
-});
+    const user = await User.signup(email, password, firstName, lastName, phoneNumber, role);
 
-// Get Inventory by ID
-const getInventory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const inventory = await Inventory.findById(id);
-    if (!inventory) {
-      return res.status(404).json({ message: "Inventory not found" });
-    }
-    res.status(200).json(inventory);
+    // create a token
+    const token = createToken(user._id);
+
+    // Send the token as a cookie or in the response body
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      maxAge: 3 * 24 * 60 * 60 * 1000,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      email: newUser.email,
+      token: token
+    });
   } catch (error) {
-    console.error("Error rendering index.html:", error);
+    console.error("Error registering user:", error);
     res.status(500).send("Internal Server Error");
   }
 };
 
-// Delete Inventory by ID
-const deleteInventory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const inventory = await Inventory.findByIdAndDelete({ _id: id });
-    if (!inventory) {
-      return res.status(404).json({ message: "Inventory not found" });
-    }
-    res.status(200).json({ message: "Inventory deleted successfully" });
-  } catch (error) {
-    console.error("Error rendering index.html:", error);
-    res.status(500).send("Internal Server Error");
-  }
-};
-
-// Delete all Inventorys
-const deleteAllInventorys = async (req, res) => {
-  try {
-    const result = await Inventory.deleteMany({});
-    res
-      .status(200)
-      .json({ message: `Deleted ${result.deletedCount} inventorys successfully` });
-  } catch (error) {
-    console.error("Error rendering index.html:", error);
-    res.status(500).send("Internal Server Error");
-  }
-};
-
-// Update Inventory by ID
-const updateInventory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedInventory = req.body;
-    // const inventory = await Inventory.findOneAndUpdate({ _id: id }, updatedInventory);
-    const inventory = await Inventory.findOneAndUpdate({ _id: id }, updatedInventory, { new: true });
-
-    if (!inventory) {
-      return res.status(404).json({ message: "Inventory not found" });
-    }
-    res.status(200).json(inventory);
-  } catch (error) {
-    console.error("Error rendering index.html:", error);
-    res.status(500).send("Internal Server Error");
-  }
-};
+// Other controller methods...
 
 module.exports = {
-  getInventorys,
-  addInventory,
-  getInventory,
-  deleteInventory,
-  deleteAllInventorys,
-  updateInventory,
+  registerUser,
 };

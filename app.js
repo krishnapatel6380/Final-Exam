@@ -9,8 +9,6 @@ const logger = require("./middlewares/logger");
 const userSSRRoutes = require("./routes/userSSRRouter");
 const inventorySSRRouter = require("./routes/inventorySSRRouter");
 
-
-
 const inventoryRouter = require("./routes/inventoryRouter");
 const inventoryAPI = require("./controllers/inventoryAPIController");
 const userAPI = require("./controllers/userAPIController");
@@ -38,9 +36,22 @@ app.use("/user", userSSRRoutes);
 
 //app.use("/api/inventorys", inventoryRouter);
 
+
+app.post("/api/users/signup", userAPI.registerUser);
+
+// GET all Inventorys
 app.get("/api/inventorys", inventoryAPI.getInventorys);
+// POST a new Inventory
 app.post("/api/inventorys", inventoryAPI.addInventory);
-app.post("/api/users/signup", inventoryAPI.addInventory);
+// GET a single Inventory
+app.get("/api/inventorys/:id", inventoryAPI.getInventory);
+
+// Update Inventory using PUT
+app.put("/api/inventorys/:id", inventoryAPI.updateInventory);
+// DELETE a Inventory
+app.delete("/api/inventorys/:id", inventoryAPI.deleteInventory);
+// DELETE all Inventory
+app.delete("/api/inventorys", inventoryAPI.deleteAllInventorys);
 
 const PORT = 4000;
 
