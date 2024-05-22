@@ -1,0 +1,33 @@
+<!-- updateinventory.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <!-- Pass a JavaScript variable to a partial in EJS -->
+  <%- include('partials/head.ejs', { title: "Update page" }) %>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="content">
+    <div class="update">
+      <h2>Update Inventory</h2>
+      <form action="/single-inventory/<%= inventory._id %>?_method=PUT" method="POST">
+        <label>Name:</label>
+        <input type="text" value="<%= inventory.name %>" id="name" name="name" required />
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4" required><%= inventory.description %></textarea>
+
+        <label for="quantity">Quantity</label>
+        <input type="number" id="quantity" name="quantity" required value="<%= inventory.quantity %>" />
+
+        <label>Price:</label>
+        <label for="price">Quantity</label>
+        <input type="number" id="price" name="price" required value="<%= inventory.price %>" />
+
+        <button type="submit">Update Inventory</button>
+      </form>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</body>
+</html>
